@@ -48,10 +48,11 @@ class State:
     def __init__(self, player, size, initial_board):
         self.player = player
         self.size = size
-        #
+
         group_board, player_groups, player_counters = self.initialize_groups(initial_board)
         self.group_board = group_board
         self.p1_groups, self.p2_groups = player_groups
+        self.p1_counter, self.p2_counter = player_counters
 
     def initialize_groups(self, initial_board):
         """
