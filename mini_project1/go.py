@@ -12,6 +12,12 @@ class Group:
         self.liberties = set()
         self.n_liberties = -1
 
+    def add_element(self, element):
+        """
+        Adds element to group list of elements
+        """
+        self.elements.append(element)
+
     def add_liberty(self, liberty):
         """
         Updates liberties for the group
