@@ -2,8 +2,8 @@ class Group:
     """
     This class stores the necessary values for the group identification, namely:
 
-        - 'elements' - list of [i,j] elements in the group
-        - 'liberties' - set of [i,j] liberties of the group
+        - 'elements' - list of (i,j) elements in the group
+        - 'liberties' - set of (i,j) liberties of the group
         - 'n_liberties' - number of liberties of the group
 
     """
@@ -14,19 +14,26 @@ class Group:
         """
         self.elements = [initial_element]
         self.liberties = set()
-        self.n_liberties = -1
+        self.n_liberties = 0
 
     def add_element(self, element):
         """
-        Adds element to group LIST of elements
+        Adds a list of elements (list of tuples) to the group.
         """
         self.elements.extend(element)
 
     def add_liberty(self, liberty):
         """
-        Updates liberties for the group
+        Adds liberty one by one. If size changes, it means
+        liberty was not yet on the set and therefore number
+        of liberties must be incremented
         """
+        previous_len = len(self.liberties)
         self.liberties.add(liberty)
+        updated_len = len(self.liberties)
+
+        if previous_len < updated_len:
+            self.n_liberties += 1
 
     def count_liberties(self):
         """
