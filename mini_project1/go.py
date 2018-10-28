@@ -35,12 +35,6 @@ class Group:
         if previous_len < updated_len:
             self.n_liberties += 1
 
-    def count_liberties(self):
-        """
-        Counts liberties of a group
-        """
-        self.n_liberties = len(self.liberties)
-
 
 class State:
     """
