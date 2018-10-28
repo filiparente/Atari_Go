@@ -8,15 +8,19 @@ class Group:
 
     """
     def __init__(self, initial_element):
+        """
+
+        :param initial_element: tuple with point coordinates
+        """
         self.elements = [initial_element]
         self.liberties = set()
         self.n_liberties = -1
 
     def add_element(self, element):
         """
-        Adds element to group list of elements
+        Adds element to group LIST of elements
         """
-        self.elements.append(element)
+        self.elements.extend(element)
 
     def add_liberty(self, liberty):
         """
