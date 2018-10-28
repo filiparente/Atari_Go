@@ -1,3 +1,71 @@
+class Group:
+    """
+    This class stores the necessary values for the group identification, namely:
+
+        - 'elements' - list of [i,j] elements in the group
+        - 'liberties' - set of [i,j] liberties of the group
+        - 'n_liberties' - number of liberties of the group
+
+    """
+    def __init__(self, initial_element):
+        self.elements = [initial_element]
+        self.liberties = set()
+        self.n_liberties = -1
+
+    def add_liberty(self, liberty):
+        """
+        Updates liberties for the group
+        """
+        self.liberties.add(liberty)
+
+    def count_liberties(self):
+        """
+        Counts liberties of a group
+        """
+        self.n_liberties = len(self.liberties)
+
+
+class State:
+    """
+    This class stores the necessary values for the state definition
+
+    - player - defines next player to move
+    - group_board - displays the board with the component groups
+    - p1_groups - dictionary with objects of type Group.
+    - p1_counter (odd) - player 1 counter for group identification
+    - p2_groups - same as p1_groups but for player2
+    _ p2_counter (even)- player 2 counter for group identification
+
+    Note: player's counters are necessary when adding more groups
+    """
+
+    def __init__(self, player, size, initial_board):
+        self.player = player
+        self.size = size
+        #
+        group_board, player_groups, player_counters = self.initialize_groups(initial_board)
+        self.group_board = group_board
+        self.p1_groups, self.p2_groups = player_groups
+
+    def initialize_groups(self, initial_board):
+        """
+        This function receives the initial board and returns the state parameters
+
+        :param initial_board: initial board configuration read from file
+        :return: group_board: board with component labels
+                 player_groups: dict with groups for each player
+                 player_counters: key counter for each player
+        """
+
+
+        return group_board, [p1_groups, p2_groups], [p1_counter, p2_counter]
+
+    def update_state(self):
+        """
+        This function updates the state representation after a change in the state
+
+        """
+
 class Game:
     """
     This class implements the Atari Go game.
@@ -42,7 +110,10 @@ class Game:
         raise NotImplementedError
 
     def result(self, s, a):
-        """Return the state that results from making action a from state s."""
+        """Return the state that results from making action a from state s.
+
+        Generates next state and verifies if it is terminal."""
+
         raise NotImplementedError
 
     def display(self, s):
@@ -66,6 +137,9 @@ class Game:
             board_row = file.readline().split('\n')[0]
             board.append([int(point) for point in board_row])
         print(board)
+
+        # 3. Initialize state
+        s = State(player, size, initial_board=board)
 
     def __repr__(self):
         return '<{}>'.format(self.__class__.__name__)
