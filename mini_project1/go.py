@@ -40,13 +40,16 @@ class State:
     This class stores the necessary values for the state definition
 
     - player - defines next player to move
-    - group_board - displays the board with the component groups
-    - p1_groups - dictionary with objects of type Group.
-    - p1_counter (odd) - player 1 counter for group identification
-    - p2_groups - same as p1_groups but for player2
-    _ p2_counter (even)- player 2 counter for group identification
+    - group_board - displays the board with the component's groups
+    - groups - dictionary with a Group structure for player 1 and player 2
+    - counters - dictionary with group counter for player 1 and player 2
 
-    Note: player's counters are necessary when adding more groups
+    Note:
+    1) player's counters are necessary when adding more groups, to avoid overwritting
+    groups already created
+    2) To access player N group structure or counter, just use N as key. (e.g: groups[1] returns
+    group structure for player 1)
+    3) to make it more intuitive, groups for player 1 are odd, whereas groups for player 2 are even
     """
 
     def __init__(self, player, size, initial_board):
@@ -55,8 +58,8 @@ class State:
 
         group_board, player_groups, player_counters = self.initialize_groups(initial_board)
         self.group_board = group_board
-        self.p1_groups, self.p2_groups = player_groups
-        self.p1_counter, self.p2_counter = player_counters
+        self.groups = player_groups
+        self.counters = player_counters
 
     def initialize_groups(self, initial_board):
         """
@@ -68,7 +71,7 @@ class State:
                  player_counters: key counter for each player
         """
 
-
+        # COPY FUNCTION FROM NOTEBOOK
         return group_board, [p1_groups, p2_groups], [p1_counter, p2_counter]
 
     def update_state(self):
