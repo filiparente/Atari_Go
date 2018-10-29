@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9c7f6f69-f40f-40f8-8ab2-ade7eafce9b9" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mini_project1/example1.txt" beforeDir="false" afterPath="$PROJECT_DIR$/mini_project1/example1.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/mini_project1/go.py" beforeDir="false" afterPath="$PROJECT_DIR$/mini_project1/go.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/mini_project1/notebooks/connectivity.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/mini_project1/notebooks/connectivity.ipynb" afterDir="false" />
     </list>
@@ -15,11 +15,15 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="go.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="go.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/mini_project1/go.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="347">
-              <caret line="283" column="8" selection-start-line="283" selection-start-column="8" selection-end-line="283" selection-end-column="8" />
+            <state relative-caret-position="1953">
+              <caret line="284" selection-start-line="284" selection-end-line="284" />
+              <folding>
+                <element signature="e#10922#11619#0" />
+                <element signature="e#5650#7370#0" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -42,11 +46,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="example1.txt" pinned="false" current-in-tab="false">
+      <file leaf-file-name="example1.txt" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/mini_project1/example1.txt">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="30">
-              <caret line="2" column="3" lean-forward="true" selection-start-line="2" selection-start-column="3" selection-end-line="2" selection-end-column="3" />
+            <state relative-caret-position="60">
+              <caret line="4" column="4" lean-forward="true" selection-start-line="4" selection-start-column="4" selection-end-line="4" selection-end-column="4" />
             </state>
           </provider>
         </entry>
@@ -66,6 +70,7 @@
       <list>
         <option value="$PROJECT_DIR$/mini_project1/example2.txt" />
         <option value="$PROJECT_DIR$/mini_project1/go.py" />
+        <option value="$PROJECT_DIR$/mini_project1/example1.txt" />
       </list>
     </option>
   </component>
@@ -79,10 +84,10 @@
     <packageJsonPaths />
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="27" />
+    <option name="x" value="24" />
     <option name="y" value="22" />
-    <option name="width" value="1253" />
-    <option name="height" value="733" />
+    <option name="width" value="1285" />
+    <option name="height" value="732" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
@@ -141,7 +146,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="27" y="22" width="1253" height="733" extended-state="0" />
+    <frame x="346" y="22" width="963" height="732" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info anchor="bottom" id="TODO" order="6" />
@@ -150,8 +155,8 @@
       <window_info anchor="bottom" id="Run" order="2" />
       <window_info anchor="bottom" id="Version Control" />
       <window_info anchor="bottom" id="Python Console" />
-      <window_info anchor="bottom" id="Terminal" visible="true" weight="0.039151713" />
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.13955408" />
+      <window_info anchor="bottom" id="Terminal" visible="true" weight="0.039215688" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.1834962" />
       <window_info anchor="bottom" id="Docker" />
       <window_info anchor="right" id="Database" />
       <window_info anchor="right" id="SciView" />
@@ -173,14 +178,12 @@
   <component name="VcsContentAnnotationSettings">
     <option name="myLimit" value="2678400000" />
   </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <option name="time" value="2" />
+    </breakpoint-manager>
+  </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/mini_project1/example1.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="30">
-          <caret line="2" column="3" lean-forward="true" selection-start-line="2" selection-start-column="3" selection-end-line="2" selection-end-column="3" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/mini_project1/example2.txt">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="75">
@@ -197,8 +200,19 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/mini_project1/go.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="347">
-          <caret line="283" column="8" selection-start-line="283" selection-start-column="8" selection-end-line="283" selection-end-column="8" />
+        <state relative-caret-position="1953">
+          <caret line="284" selection-start-line="284" selection-end-line="284" />
+          <folding>
+            <element signature="e#10922#11619#0" />
+            <element signature="e#5650#7370#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/mini_project1/example1.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="60">
+          <caret line="4" column="4" lean-forward="true" selection-start-line="4" selection-start-column="4" selection-end-line="4" selection-end-column="4" />
         </state>
       </provider>
     </entry>

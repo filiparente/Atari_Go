@@ -251,6 +251,24 @@ class Game:
 
     def actions(self, s):
         """Returns a list of valid moves at state s."""
+
+        # iterate board
+
+            # if position == 0:
+
+                # if any neighbor is empty:
+                    # add point to list of allowed actions
+                    # continue to next point
+
+                # if any neighbor is the same color and has 1+ liberties:
+                    # add point to list of allowed actions
+                    # continue to next point
+
+                # if any neighbor is the other color and has only 1 liberty: (suicide+kill play)
+                    # add point to list of allowed actions
+
+        # return actions
+
         raise NotImplementedError
 
     def result(self, s, a):
