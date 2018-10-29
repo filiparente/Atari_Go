@@ -29,11 +29,65 @@ class Group:
         of liberties must be incremented
         """
         previous_len = len(self.liberties)
-        self.liberties.add(liberty)
+        self.liberties.add(liberty)  # only adds to the set if the element is not present already
         updated_len = len(self.liberties)
 
         if previous_len < updated_len:
             self.n_liberties += 1
+
+    def update_liberties(self, row, col, board):
+        """
+        This function calculates the liberties for the given point,
+        and updates the corresponding group information regarding so.
+
+        :param row: row point position
+        :param col: col point position
+        :param board: matrix with board pieces
+        :param group_board: matrix with board groups
+        :param player: next player to move
+        :param groups: dictionary with groups' information
+        """
+
+        # check all 4 neighbors. If the neighbor is empty (= 0) its a liberty
+
+        if row - 1 >= 0:
+            if board[row - 1][col] == 0:
+                self.add_liberty((row - 1, col))
+        if row + 1 < len(board):
+            if board[row + 1][col] == 0:
+                self.add_liberty((row + 1, col))
+        if col - 1 >= 0:
+            if board[row][col - 1] == 0:
+                self.add_liberty((row, col - 1))
+        if col + 1 < len(board):
+            if board[row][col + 1] == 0:
+                self.add_liberty((row, col + 1))
+
+    def merge_groups(self, player, groups, left_neighbor_group):
+        """
+        This function is responsible for merging two connected groups initially
+        identified as separated components.
+
+        :param row: row point position
+        :param col: col point position
+        :param player: next player to move
+        :param groups: dictionary with groups' information
+        :param left_neighbor_group: group to merge
+        :param group_board: matrix with board groups
+
+        :return board elements to update on the board
+        """
+
+        # 1) merge elements
+        elements_to_merge = groups[player][left_neighbor_group].elements
+        self.add_element(elements_to_merge)
+
+        # 2) merge liberties (liberties count is updated internally)
+        liberties_to_merge = groups[player][left_neighbor_group].liberties
+        for liberty in liberties_to_merge:
+            self.add_liberty(liberty)
+
+        return elements_to_merge
 
 
 class State:
@@ -72,14 +126,89 @@ class State:
                  player_counters: key counter for each player
         """
 
-        # COPY FUNCTION FROM NOTEBOOK
-        return group_board, [p1_groups, p2_groups], [p1_counter, p2_counter]
+        """
+        Component identification goes as follows:
+        1) Look for a group neighbor on the row above. If existent, join group.
+        2) Look for a group neighbor on the col on the left. If existent:
+            2.1) If neighbor was found both on top and left, then merge left group
+                 w/ top group
+            2.2) If only left neighbor was found, then join current point to left
+                 group.
+        3) If no neighbor was found (same player piece in any of the neighboring points)
+           then a new group is created
+        """
+
+        # a matrix containing the number of the group each point belongs to or 0 (for empty)
+        group_board = [[0] * len(initial_board) for i in range(len(initial_board))]
+        # the groups for player 1 and for player 2
+        groups = {1: dict(), 2: dict()}
+        # counter for the group names. player 1: odd numbers; player 2: even numbers
+        counters = {1: 1, 2: 2}
+
+        for row in range(len(initial_board)):
+            for col in range(len(initial_board)):
+
+                player = initial_board[row][col]
+
+                # Check if current point is occupied. If not, it just skips to next point
+                if initial_board[row][col] != 0:
+
+                    if row - 1 >= 0:
+                        top_neighbor = initial_board[row - 1][col]
+                        top_neighbor_group = group_board[row - 1][col]
+
+                        if top_neighbor_group != 0 and top_neighbor == player:
+                            # updates group board
+                            group_board[row][col] = top_neighbor_group
+                            # adds element to group structure
+                            new_elements = [(row, col)]
+                            groups[player][group_board[row][col]].add_element(new_elements)
+
+                    if col - 1 >= 0:
+                        left_neighbor = initial_board[row][col - 1]
+                        left_neighbor_group = group_board[row][col - 1]
+
+                        if left_neighbor_group != 0 and left_neighbor == player:
+                            # verifies if groups must be merged (condition 2.1)
+                            # by checking group_board[row][col] != 0, we ensure a group has been
+                            # attributed before
+                            if group_board[row][col] != 0 and left_neighbor_group != group_board[row][col]:
+                                # updates left neighbor's group elements
+                                group = group_board[row][col]
+                                elements_to_merge = groups[player][group].merge_groups(player, groups, left_neighbor_group)
+
+                                # removes old group from dictionary
+                                groups[player].pop(left_neighbor_group)
+                                # updates group board
+                                for old_element_row, old_element_col in elements_to_merge:
+                                    group_board[old_element_row][old_element_col] = group_board[row][col]
+
+                            # no neighbor on top, just join left neighbor's group (condition 2.2)
+                            elif group_board[row][col] == 0:
+                                # updates group board
+                                group_board[row][col] = left_neighbor_group
+                                # adds element to group structure
+                                new_elements = [(row, col)]
+                                groups[player][group_board[row][col]].add_element(new_elements)
+
+                    # if no merging neighbors were found, than just creates a new group
+                    if group_board[row][col] == 0:
+                        group_board[row][col] = counters[player]
+                        groups[player][counters[player]] = Group((row, col))
+                        counters[player] += 2
+
+                    # Finally, add information about group's liberties to the structure
+                    group = group_board[row][col]
+                    groups[player][group].update_liberties(row, col, initial_board)
+
+        return group_board, groups, counters
 
     def update_state(self):
         """
         This function updates the state representation after a change in the state
 
         """
+
 
 class Game:
     """
@@ -106,7 +235,7 @@ class Game:
 
     def to_move(self, s):
         """Returns the player to move next given the state s."""
-        raise NotImplementedError
+        return s.player
 
     def terminal_test(self, s):
         """Returns a boolean of whether state s is terminal."""
@@ -151,10 +280,13 @@ class Game:
         for row in range(size):
             board_row = file.readline().split('\n')[0]
             board.append([int(point) for point in board_row])
+
         print(board)
 
         # 3. Initialize state
         s = State(player, size, initial_board=board)
+
+        return s
 
     def __repr__(self):
         return '<{}>'.format(self.__class__.__name__)
