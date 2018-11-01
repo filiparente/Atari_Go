@@ -9,11 +9,12 @@ class Group:
         - 'n_liberties' - number of liberties of the group
 
     """
-    def __init__(self, initial_element):
+    def __init__(self, player, initial_element):
         """
 
         :param initial_element: tuple with point coordinates
         """
+        self.player = player
         self.elements = [initial_element]
         self.liberties = set()
         self.n_liberties = 0
@@ -37,7 +38,18 @@ class Group:
         if previous_len < updated_len:
             self.n_liberties += 1
 
-    def update_liberties(self, row, col, board):
+    def remove_liberty(self, row, col):
+        """
+        Removes a liberty from the group
+
+        """
+        try:
+            self.liberties.remove((row, col))
+            self.n_liberties -= 1
+        except:
+            pass
+
+    def add_liberties(self, row, col, board):
         """
         This function calculates the liberties for the given point,
         and updates the corresponding group information regarding so.
@@ -196,20 +208,124 @@ class State:
                     # if no merging neighbors were found, than just creates a new group
                     if group_board[row][col] == 0:
                         group_board[row][col] = counters[player]
-                        groups[player][counters[player]] = Group((row, col))
+                        groups[player][counters[player]] = Group(player, (row, col))
                         counters[player] += 2
 
                     # Finally, add information about group's liberties to the structure
                     group = group_board[row][col]
-                    groups[player][group].update_liberties(row, col, initial_board)
+                    groups[player][group].add_liberties(row, col, initial_board)
 
         return group_board, groups, counters
 
-    def update_state(self):
+    def update_state(self, a):
         """
         This function updates the state representation after a change in the state
 
         """
+        # Next player
+        self.update_player()
+
+        # Update group board and groups
+        self.update_groups(a)
+
+    def update_liberties(self):
+
+
+    def update_player(self):
+        """
+        Update info about next player
+        """
+        if self.player == 1:
+            self.player = 2
+        else:
+            self.player = 1
+
+    def find_neighboring_groups(self, group_list, row, col, player):
+        """
+        This function finds the neighboring groups, and updates
+        their liberties
+
+        :param group_list:
+        :param row:
+        :param col:
+        :param player:
+        :return:
+        """
+        if self.group_board[row][col] != 0:  # Found a group
+            # removes liberty corresponding to current point
+            self.groups[player][self.group_board[row][col]].remove_liberty(row, col)
+            # if same group, adds to group list
+            if self.group_board[row][col].player  == player:
+                group_list.add(self.group_board[row][col])
+
+        return group_list
+
+    def update_groups(self, move):
+        """
+        Function responsible for updating the state after
+        having played a certain move.
+        :param previous_s: state before move is played
+        :param next_s: state after move is played
+        :param move: action played
+        :return: updated state
+        """
+        player = move[0]
+
+        row = move[1]
+        col = move[2]
+        new_element = [(row, col)]
+
+        wanted_group_list = set()
+
+        # Check if there groups nearby
+
+        # Look up for same player groups
+        if row - 1 >= 0:
+            wanted_group_list = self.find_neighboring_groups(wanted_group_list, row - 1, col, player)
+        # Look down
+        if row + 1 < self.size:
+            wanted_group_list = self.find_neighboring_groups(wanted_group_list, row + 1, col, player)
+        # Look right
+        if col + 1 < self.size:
+            wanted_group_list = self.find_neighboring_groups(wanted_group_list, row, col + 1, player)
+        # Look left
+        if col - 1 >= 0:
+            wanted_group_list = self.find_neighboring_groups(wanted_group_list, row, col - 1, player)
+
+        if len(wanted_group_list) >= 1:  # Want to join to more than 1 group
+
+            # Insert me in the first group (ordered)
+            first_group = wanted_group_list.pop()
+
+            self.groups[player][first_group].add_element(new_element)
+
+            # Update group board accordingly
+            self.group_board[row][col] = first_group
+
+            # Merge all the groups
+            for group in wanted_group_list:
+
+                # merges next group to the first
+                elements_to_merge = self.groups[player][first_group].merge_groups(player, self.groups, group)
+
+                # removes old group from dictionary
+                self.groups[player].pop(group)
+
+                # updates group board
+                for old_element_row, old_element_col in elements_to_merge:
+                    self.group_board[old_element_row][old_element_col] = self.group_board[row][col]
+
+        elif len(wanted_group_list) == 0:  # Alone
+            # Create a new group for myself
+            self.groups[player][self.counters[player]] = Group((row, col))
+            # Update group board accordingly
+            self.group_board[row][col] = self.counters[player]
+            # Update counter
+            self.counters[player] += 2
+            # Add liberties to group
+            group = self.group_board[row][col]
+            self.groups[player][group].add_liberties(row, col, self.group_board)
+
 
 
 class Game:
@@ -272,109 +388,6 @@ class Game:
         # return actions
 
         raise NotImplementedError
-        
-    def update_player(self, previous_s, next_s):
-        """
-
-        :param previous_s: state before action a is played
-        :param next_s: state after playing action a
-        :return: new state object with updated next player
-        """
-        if previous_s.player == 1:
-            next_s.player = 2
-        else:
-            next_s.player = 1
-            
-        return next_s
-    
-    def find_groups(self, group_list, group_board, row, col, player):
-        if group_board[row][col] != 0: #Found a group
-            if group_board[row][col] % 2 == 0: #Even group
-                if player == 2: #Same group
-                    group_list.add(group_board[row][col])
-            else: #Odd group
-                if player == 1: #same group
-                    group_list.add(group_board[row][col])
-                    
-        return group_list
-        
-    
-    def update_groupboard(self, previous_s, next_s, move):
-        """
-        Function responsible for updating the state after
-        having played a certain move.
-        :param previous_s: state before move is played
-        :param next_s: state after move is played
-        :param move: action played
-        :return: updated state
-        """
-        player = move[0]
-        
-        row = move[1]
-        col = move[2]
-        new_element = [(row, col)]
-        
-        wanted_group_list = set()
-        
-        #Check if there groups nearby
-        
-        #Look up
-        if (row-1 >= 0):
-            wanted_group_list = self.find_groups(wanted_group_list, previous_s.group_board, row-1, col, player)
-        #Look down
-        if (row+1 < previous_s.size):
-            wanted_group_list = self.find_groups(wanted_group_list, previous_s.group_board, row+1, col, player)
-        #Look right
-        if (col+1 < previous_s.size):
-            wanted_group_list = self.find_groups(wanted_group_list, previous_s.group_board, row, col+1, player)
-        #Look left
-        if (col-1 >= 0):
-            wanted_group_list = self.find_groups(wanted_group_list, previous_s.group_board, row, col-1, player)
-        
-        if len(wanted_group_list) > 1: #Want to join to more than 1 group
-            
-            #Insert me in the first group (ordered)
-            first_group = wanted_group_list.pop()
-            
-            next_s.groups[player][first_group].add_element(new_element)
-            
-            #Update group board accordingly
-            next_s.group_board[row][col] = first_group
-            
-            #Merge all the groups
-            for group in wanted_group_list:
-                
-                #merges next group to the first
-                elements_to_merge = next_s.groups[player][first_group].merge_groups(player, next_s.groups, group)
-                
-                # removes old group from dictionary
-                next_s.groups[player].pop(group)
-                
-                # updates group board
-                for old_element_row, old_element_col in elements_to_merge:
-                    next_s.group_board[old_element_row][old_element_col] = next_s.group_board[row][col]
-                    
-            #Remove it from the liberties
-            next_s.groups[player][first_group].liberties.remove((row,col))
-            
-            #TO DO: UPDATE LIBERTIES OF THE NEIGHBOR GROUPS
-            
-                    
-        elif len(wanted_group_list) == 0: #Alone
-            #Create a new group for myself
-            next_s.groups[player][next_s.counters[player]] = Group((row, col))
-            
-            #Update group board accordingly
-            next_s.group_board[row][col] = next_s.counters[player]
-            
-            #Update counter
-            next_s.counters[player] += 2
-            
-            #TO DO: UPDATE LIBERTIES OF THE NEIGHBOR GROUPS
-           
-        
-        return next_s
-        
     
     def result(self, s, a):
         """
@@ -382,17 +395,11 @@ class Game:
 
         Generates next state (allocates new memory).
         """
-        
         # Initialize successor state
         successor_s = deepcopy(s)
         
         #Assuming that action a is a valid action (verified before), next state is updated accordingly
-        
-        #Next player
-        successor_s = self.update_player(s, successor_s)
-        
-        # Update group board and groups
-        successor_s = self.update_groupboard(s, successor_s, a)
+        successor_s.update_state(a)
         
         return successor_s
 
