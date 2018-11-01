@@ -1,4 +1,5 @@
 from copy import deepcopy
+infinity = 9999
 
 class Group:
     """
@@ -122,6 +123,7 @@ class State:
 
     def __init__(self, player, size, initial_board):
         self.player = player
+        self.draw = False
         self.size = size
 
         group_board, player_groups, player_counters = self.initialize_groups(initial_board)
@@ -382,8 +384,35 @@ class Game:
         return s.player
 
     def terminal_test(self, s):
-        """Returns a boolean of whether state s is terminal."""
-        return not self.actions(s)
+        """Returns a boolean of whether state s is terminal.
+
+        The procedure is the following:
+            - the current player must have at least one liberty on
+            all its groups;
+            - if the condition above verifies, there still need to
+            be a non empty list of possible actions given the state s
+
+        If any of the conditions above is violated the state is terminal.
+
+        The winner is also updated in the state.
+        """
+        terminal_state = False
+
+        player = s.player
+        # verifies that no group has 0 liberties
+        for group in s.groups[player].keys():
+            if s.groups[player][group].n_liberties == 0:
+                terminal_state = True
+
+        # no group was closed, must verify if there's a possible action
+        # to play
+        if not terminal_state:
+            possible_actions = self.actions(s)
+            if not possible_actions:
+                terminal_state = True
+                s.draw = True
+
+        return terminal_state
 
     def utility(self, s, player):
         """Returns the payoff of state s if it is terminal (1 if p wins, -1
@@ -391,10 +420,42 @@ class Game:
         to player p.
         To calculate the evaluation it uses the alpha beta cut
         off search, described further below"""
-        raise NotImplementedError
+
+        if not s.draw:
+            self.terminal_test(s)
+        if s.draw:
+            return 0
+
+        own_min = infinity
+        for group in s.groups[player].values():
+            if group.n_liberties < own_min:
+                own_min = group.n_liberties
+
+        other_min = infinity
+        for group in s.groups[3-player].values():
+            if group.n_liberties < other_min:
+                other_min = group.n_liberties
+
+        if other_min == 0:
+            return 1
+
+        if own_min == 1:
+            return -1
+
+        #return (lambda * (own_min/(own_min+other_min)) + (1-lambda)* ((own_min-other_min)/(own_min+other_min)))
+        return ((own_min-other_min)/(own_min+other_min))
+
+
+
+
 
     def actions(self, s):
-        """Returns a list of valid moves at state s."""
+        """Returns a list of valid moves at state s.
+
+        Because we use 0 based board indexation in our implementation and the API states that 1 based
+        indexation should be used, we have so add one from each coordinate when an action is returned
+
+        """
 
         actions_set = set()
 
@@ -411,15 +472,15 @@ class Game:
                         neighbor_liberties = neighbor[1]
 
                         if neighbor_color == 0:
-                            actions_set.add((s.player, row, col))
+                            actions_set.add((s.player, row+1, col+1))
                             continue
 
                         if neighbor_color == s.player and neighbor_liberties > 1:
-                            actions_set.add((s.player, row, col))
+                            actions_set.add((s.player, row+1, col+1))
                             continue
 
                         if neighbor_color != s.player and neighbor_liberties == 1:
-                            actions_set.add((s.player, row, col))
+                            actions_set.add((s.player, row+1, col+1))
                             continue
 
         return list(actions_set)
@@ -428,8 +489,13 @@ class Game:
         """
         Return the state that results from making action a from state s.
 
+        Because we use 0 based board indexation in our implementation and the API states that 1 based
+        indexation should be used, we have so subtract one from each coordinate when an action is received
+
         Generates next state (allocates new memory).
         """
+        a = (a[0], a[1]-1, a[2]-1)
+
         # Initialize successor state
         successor_s = deepcopy(s)
         
@@ -450,8 +516,8 @@ class Game:
         #   - next player to move
         line1 = file.readline()
         size, player = map(int, line1.split(' '))
-        print('Board size: {}x{}'.format(size, size))
-        print('Next player to move: ', player)
+        #print('Board size: {}x{}'.format(size, size))
+        #print('Next player to move: ', player)
 
         # 2. Load board into matrix
         board = []
