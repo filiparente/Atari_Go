@@ -274,6 +274,12 @@ class Game:
         raise NotImplementedError
         
     def update_player(self, previous_s, next_s):
+        """
+
+        :param previous_s: state before action a is played
+        :param next_s: state after playing action a
+        :return: new state object with updated next player
+        """
         if previous_s.player == 1:
             next_s.player = 2
         else:
@@ -294,7 +300,14 @@ class Game:
         
     
     def update_groupboard(self, previous_s, next_s, move):
-        
+        """
+        Function responsible for updating the state after
+        having played a certain move.
+        :param previous_s: state before move is played
+        :param next_s: state after move is played
+        :param move: action played
+        :return: updated state
+        """
         player = move[0]
         
         row = move[1]
@@ -364,9 +377,11 @@ class Game:
         
     
     def result(self, s, a):
-        """Return the state that results from making action a from state s.
+        """
+        Return the state that results from making action a from state s.
 
-        Generates next state."""
+        Generates next state (allocates new memory).
+        """
         
         # Initialize successor state
         successor_s = deepcopy(s)
