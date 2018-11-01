@@ -297,7 +297,9 @@ class State:
             # Insert me in the first group (ordered)
             first_group = wanted_group_list.pop()
 
+            # add element along with its liberties
             self.groups[player][first_group].add_element(new_element)
+            self.groups[player][first_group].add_liberties(row, col, self.group_board)
 
             # Update group board accordingly
             self.group_board[row][col] = first_group
@@ -595,6 +597,7 @@ def alphabeta_cutoff_search(state, game, d=4, cutoff_test=None, eval_fn=None):
     best_action = None
     for a in game.actions(state):
         v = min_value(game.result(state, a), best_score, beta, 1)
+        print(v, a)
         if v > best_score:
             best_score = v
             best_action = a
