@@ -436,10 +436,12 @@ class Game:
             if group.n_liberties < other_min:
                 other_min = group.n_liberties
 
-        if other_min == 0:
+        if other_min == 0 and s.player != player:
             return 1
+        elif other_min == 0 and s.player == player:
+            return -1
 
-        if own_min == 1:
+        if own_min == 1 and s.player != player:
             return -1
 
         #return (lambda * (own_min/(own_min+other_min)) + (1-lambda)* ((own_min-other_min)/(own_min+other_min)))
