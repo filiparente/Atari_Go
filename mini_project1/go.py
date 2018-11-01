@@ -9,12 +9,11 @@ class Group:
         - 'n_liberties' - number of liberties of the group
 
     """
-    def __init__(self, player, initial_element):
+    def __init__(self, initial_element):
         """
 
         :param initial_element: tuple with point coordinates
         """
-        self.player = player
         self.elements = [initial_element]
         self.liberties = set()
         self.n_liberties = 0
@@ -208,7 +207,7 @@ class State:
                     # if no merging neighbors were found, than just creates a new group
                     if group_board[row][col] == 0:
                         group_board[row][col] = counters[player]
-                        groups[player][counters[player]] = Group(player, (row, col))
+                        groups[player][counters[player]] = Group((row, col))
                         counters[player] += 2
 
                     # Finally, add information about group's liberties to the structure
@@ -228,9 +227,6 @@ class State:
         # Update group board and groups
         self.update_groups(a)
 
-    def update_liberties(self):
-
-
     def update_player(self):
         """
         Update info about next player
@@ -240,7 +236,7 @@ class State:
         else:
             self.player = 1
 
-    def find_neighboring_groups(self, group_list, row, col, player):
+    def find_neighboring_groups(self, group_list, neighbor_pos, my_pos, player):
         """
         This function finds the neighboring groups, and updates
         their liberties
@@ -251,12 +247,14 @@ class State:
         :param player:
         :return:
         """
-        if self.group_board[row][col] != 0:  # Found a group
+        group = self.group_board[neighbor_pos[0]][neighbor_pos[1]]
+        if group != 0:  # Found a group
+            neighbor_player = self.get_group_player(group)
             # removes liberty corresponding to current point
-            self.groups[player][self.group_board[row][col]].remove_liberty(row, col)
+            self.groups[neighbor_player][group].remove_liberty(my_pos[0], my_pos[1])
             # if same group, adds to group list
-            if self.group_board[row][col].player  == player:
-                group_list.add(self.group_board[row][col])
+            if neighbor_player == player:
+                group_list.add(group)
 
         return group_list
 
@@ -281,16 +279,16 @@ class State:
 
         # Look up for same player groups
         if row - 1 >= 0:
-            wanted_group_list = self.find_neighboring_groups(wanted_group_list, row - 1, col, player)
+            wanted_group_list = self.find_neighboring_groups(wanted_group_list, (row - 1, col), new_element[0], player)
         # Look down
         if row + 1 < self.size:
-            wanted_group_list = self.find_neighboring_groups(wanted_group_list, row + 1, col, player)
+            wanted_group_list = self.find_neighboring_groups(wanted_group_list, (row + 1, col), new_element[0],player)
         # Look right
         if col + 1 < self.size:
-            wanted_group_list = self.find_neighboring_groups(wanted_group_list, row, col + 1, player)
+            wanted_group_list = self.find_neighboring_groups(wanted_group_list, (row, col + 1), new_element[0], player)
         # Look left
         if col - 1 >= 0:
-            wanted_group_list = self.find_neighboring_groups(wanted_group_list, row, col - 1, player)
+            wanted_group_list = self.find_neighboring_groups(wanted_group_list, (row, col - 1), new_element[0], player)
 
         if len(wanted_group_list) >= 1:  # Want to join to more than 1 group
 
@@ -326,7 +324,35 @@ class State:
             group = self.group_board[row][col]
             self.groups[player][group].add_liberties(row, col, self.group_board)
 
+    def get_neighbors(self, row, col):
+        """returns list of tuples (neighbour_color, #liberties)
+        """
 
+        board_size = self.size
+        neighbors = list()
+        coords = [(row - 1, col), (row + 1, col), (row, col - 1), (row, col + 1)]
+
+        for coord in coords:
+            row = coord[0]
+            col = coord[1]
+
+            if (row >= 0 and row < board_size) and (col >= 0 and col < board_size):
+
+                group = self.group_board[row][col]
+
+                if group == 0:
+                    neighbors.append((0, -1))
+                else:
+                    color = self.get_group_player(group)
+                    neighbors.append((color, self.groups[color][group].n_liberties))
+
+        return neighbors
+
+    def get_group_player(self, group_number):
+        if group_number % 2 == 0:
+            return 2
+        else:
+            return 1
 
 class Game:
     """
@@ -370,25 +396,34 @@ class Game:
     def actions(self, s):
         """Returns a list of valid moves at state s."""
 
-        # iterate board
+        actions_set = set()
 
-            # if position == 0:
+        for row in range(s.size):
+            for col in range(s.size):
 
-                # if any neighbor is empty:
-                    # add point to list of allowed actions
-                    # continue to next point
+                if s.group_board[row][col] == 0:
 
-                # if any neighbor is the same color and has 1+ liberties:
-                    # add point to list of allowed actions
-                    # continue to next point
+                    neighbors = s.get_neighbors(row, col)
 
-                # if any neighbor is the other color and has only 1 liberty: (suicide+kill play)
-                    # add point to list of allowed actions
+                    for neighbor in neighbors:
 
-        # return actions
+                        neighbor_color = neighbor[0]
+                        neighbor_liberties = neighbor[1]
 
-        raise NotImplementedError
-    
+                        if neighbor_color == 0:
+                            actions_set.add((s.player, row, col))
+                            continue
+
+                        if neighbor_color == s.player and neighbor_liberties > 1:
+                            actions_set.add((s.player, row, col))
+                            continue
+
+                        if neighbor_color != s.player and neighbor_liberties == 1:
+                            actions_set.add((s.player, row, col))
+                            continue
+
+        return list(actions_set)
+
     def result(self, s, a):
         """
         Return the state that results from making action a from state s.
@@ -398,7 +433,7 @@ class Game:
         # Initialize successor state
         successor_s = deepcopy(s)
         
-        #Assuming that action a is a valid action (verified before), next state is updated accordingly
+        # Assuming that action a is a valid action (verified before), next state is updated accordingly
         successor_s.update_state(a)
         
         return successor_s
