@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 class Group:
     """
     This class stores the necessary values for the group identification, namely:
@@ -270,13 +272,114 @@ class Game:
         # return actions
 
         raise NotImplementedError
-
+        
+    def update_player(self, previous_s, next_s):
+        if previous_s.player == 1:
+            next_s.player = 2
+        else:
+            next_s.player = 1
+            
+        return next_s
+    
+    def find_groups(self, group_list, group_board, row, col, player):
+        if group_board[row][col] != 0: #Found a group
+            if group_board[row][col] % 2 == 0: #Even group
+                if player == 2: #Same group
+                    group_list.add(group_board[row][col])
+            else: #Odd group
+                if player == 1: #same group
+                    group_list.add(group_board[row][col])
+                    
+        return group_list
+        
+    
+    def update_groupboard(self, previous_s, next_s, move):
+        
+        player = move[0]
+        
+        row = move[1]
+        col = move[2]
+        new_element = [(row, col)]
+        
+        wanted_group_list = set()
+        
+        #Check if there groups nearby
+        
+        #Look up
+        if (row-1 >= 0):
+            wanted_group_list = self.find_groups(wanted_group_list, previous_s.group_board, row-1, col, player)
+        #Look down
+        if (row+1 < previous_s.size):
+            wanted_group_list = self.find_groups(wanted_group_list, previous_s.group_board, row+1, col, player)
+        #Look right
+        if (col+1 < previous_s.size):
+            wanted_group_list = self.find_groups(wanted_group_list, previous_s.group_board, row, col+1, player)
+        #Look left
+        if (col-1 >= 0):
+            wanted_group_list = self.find_groups(wanted_group_list, previous_s.group_board, row, col-1, player)
+        
+        if len(wanted_group_list) > 1: #Want to join to more than 1 group
+            
+            #Insert me in the first group (ordered)
+            first_group = wanted_group_list.pop()
+            
+            next_s.groups[player][first_group].add_element(new_element)
+            
+            #Update group board accordingly
+            next_s.group_board[row][col] = first_group
+            
+            #Merge all the groups
+            for group in wanted_group_list:
+                
+                #merges next group to the first
+                elements_to_merge = next_s.groups[player][first_group].merge_groups(player, next_s.groups, group)
+                
+                # removes old group from dictionary
+                next_s.groups[player].pop(group)
+                
+                # updates group board
+                for old_element_row, old_element_col in elements_to_merge:
+                    next_s.group_board[old_element_row][old_element_col] = next_s.group_board[row][col]
+                    
+            #Remove it from the liberties
+            next_s.groups[player][first_group].liberties.remove((row,col))
+            
+            #TO DO: UPDATE LIBERTIES OF THE NEIGHBOR GROUPS
+            
+                    
+        elif len(wanted_group_list) == 0: #Alone
+            #Create a new group for myself
+            next_s.groups[player][next_s.counters[player]] = Group((row, col))
+            
+            #Update group board accordingly
+            next_s.group_board[row][col] = next_s.counters[player]
+            
+            #Update counter
+            next_s.counters[player] += 2
+            
+            #TO DO: UPDATE LIBERTIES OF THE NEIGHBOR GROUPS
+           
+        
+        return next_s
+        
+    
     def result(self, s, a):
         """Return the state that results from making action a from state s.
 
-        Generates next state and verifies if it is terminal."""
-
-        raise NotImplementedError
+        Generates next state."""
+        
+        # Initialize successor state
+        successor_s = deepcopy(s)
+        
+        #Assuming that action a is a valid action (verified before), next state is updated accordingly
+        
+        #Next player
+        successor_s = self.update_player(s, successor_s)
+        
+        # Update group board and groups
+        successor_s = self.update_groupboard(s, successor_s, a)
+        
+        return successor_s
 
     def display(self, s):
         """Print or otherwise display the state."""
@@ -298,8 +401,6 @@ class Game:
         for row in range(size):
             board_row = file.readline().split('\n')[0]
             board.append([int(point) for point in board_row])
-
-        print(board)
 
         # 3. Initialize state
         s = State(player, size, initial_board=board)
