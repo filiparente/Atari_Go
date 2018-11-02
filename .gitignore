@@ -1,3 +1,17 @@
+<<<<<<< HEAD
+
+\.DS_Store
+
+mini_project1/\.idea/mini_project1\.iml
+
+mini_project1/\.idea/
+
+mini_project1/venv/bin/
+
+*.ps
+
+mini_project1/venv/pyvenv\.cfg
+=======
 # Compiled source #
 ###################
 *.com
@@ -38,3 +52,4 @@ Thumbs.db
 
 .idea/
 ._ipynb_checkpoints/
+>>>>>>> master
