@@ -27,9 +27,10 @@ class Group:
 
     def add_liberty(self, liberty):
         """
-        Adds liberty one by one. If size changes, it means
+        Tries to add a liberty. If size changes, it means
         liberty was not yet on the set and therefore number
-        of liberties must be incremented
+        of liberties must be incremented, since liberty was
+        added
         """
         previous_len = len(self.liberties)
         self.liberties.add(liberty)  # only adds to the set if the element is not present already
@@ -42,6 +43,8 @@ class Group:
         """
         Removes a liberty from the group
 
+        :param: row - row of liberty to remove
+        :param: col - col of liberty to remove
         """
         try:
             self.liberties.remove((row, col))
@@ -57,12 +60,9 @@ class Group:
         :param row: row point position
         :param col: col point position
         :param board: matrix with board pieces
-        :param group_board: matrix with board groups
-        :param player: next player to move
-        :param groups: dictionary with groups' information
         """
 
-        # check all 4 neighbors. If the neighbor is empty (= 0) its a liberty
+        # check all 4 neighbors. If the neighbor is empty (= 0) it's a liberty
 
         if row - 1 >= 0:
             if board[row - 1][col] == 0:
@@ -82,13 +82,9 @@ class Group:
         This function is responsible for merging two connected groups initially
         identified as separated components.
 
-        :param row: row point position
-        :param col: col point position
         :param player: next player to move
         :param groups: dictionary with groups' information
         :param left_neighbor_group: group to merge
-        :param group_board: matrix with board groups
-
         :return board elements to update on the board
         """
 
@@ -114,10 +110,10 @@ class State:
     - counters - dictionary with group counter for player 1 and player 2
 
     Note:
-    1) player's counters are necessary when adding more groups, to avoid overwritting
-    groups already created
-    2) To access player N group structure or counter, just use N as key. (e.g: groups[1] returns
-    group structure for player 1)
+    1) players' counters are necessary when adding more groups, to avoid overwritting
+    groups already existing
+    2) To access group N structure or counter, just use N as key. (e.g: groups[player][N] returns
+    group N structure for player 1)
     3) to make it more intuitive, groups for player 1 are odd, whereas groups for player 2 are even
     """
 
@@ -222,6 +218,7 @@ class State:
         """
         This function updates the state representation after a change in the state
 
+        :param: a - tuple (player, x, y) with action to perform
         """
         # Next player
         self.update_player()
@@ -246,12 +243,13 @@ class State:
         This function finds the neighboring groups, and updates
         their liberties
 
-        :param group_list:
-        :param row:
-        :param col:
-        :param player:
-        :return:
+        :param group_list: set with groups to be merged
+        :param neighbor_pos: position of neighbor
+        :param my_pos: current move position
+        :param player: color to play
+        :return updated seet of groups to merge
         """
+
         group = self.group_board[neighbor_pos[0]][neighbor_pos[1]]
         if group != 0:  # Found a group
             neighbor_player = self.get_group_player(group)
@@ -300,12 +298,12 @@ class State:
             # Insert me in the first group (ordered)
             first_group = wanted_group_list.pop()
 
+            # Update group board accordingly
+            self.group_board[row][col] = first_group
+
             # add element along with its liberties
             self.groups[player][first_group].add_element(new_element)
             self.groups[player][first_group].add_liberties(row, col, self.group_board)
-
-            # Update group board accordingly
-            self.group_board[row][col] = first_group
 
             # Merge all the groups
             for group in wanted_group_list:
@@ -332,7 +330,8 @@ class State:
             self.groups[player][group].add_liberties(row, col, self.group_board)
 
     def get_neighbors(self, row, col):
-        """returns list of tuples (neighbour_color, #liberties)
+        """
+        returns list of tuples (neighbour_color, #liberties)
         """
 
         board_size = self.size
@@ -360,6 +359,7 @@ class State:
             return 2
         else:
             return 1
+
 
 class Game:
     """
@@ -405,8 +405,8 @@ class Game:
 
         # verifies that no group has 0 liberties
         for player in [1,2]:
-            for group in s.groups[player].keys():
-                if s.groups[player][group].n_liberties == 0:
+            for group in s.groups[player].values():
+                if group.n_liberties == 0:
                     terminal_state = True
                     #if self.utility(s, 1) == 1:
                     #    if self.utility(s,2) == -1:
@@ -443,12 +443,16 @@ class Game:
 
         # calculate liberties of group with less liberties
         own_min = infinity
+        own_liberties = 0
         for group in s.groups[player].values():
+            own_liberties += group.n_liberties
             if group.n_liberties < own_min:
                 own_min = group.n_liberties
 
         other_min = infinity
+        other_liberties = 0
         for group in s.groups[3-player].values():
+            other_liberties += group.n_liberties
             if group.n_liberties < other_min:
                 other_min = group.n_liberties
 
@@ -467,10 +471,8 @@ class Game:
             return -1
 
         #return (lambda * (own_min/(own_min+other_min)) + (1-lambda)* ((own_min-other_min)/(own_min+other_min)))
-        return ((own_min-other_min)/(own_min+other_min))
-
-
-
+        #return ((own_min-other_min)/(own_min+other_min))
+        return ((own_liberties-other_liberties)/(own_liberties+other_liberties))
 
     def actions(self, s):
         """Returns a list of valid moves at state s.
@@ -527,10 +529,6 @@ class Game:
         
         return successor_s
 
-    def display(self, s):
-        """Print or otherwise display the state."""
-        print(s)
-
     def load_board(self, file):
         """Loads a board from an opened file and returns the corresponding state"""
 
@@ -539,8 +537,6 @@ class Game:
         #   - next player to move
         line1 = file.readline()
         size, player = map(int, line1.split(' '))
-        #print('Board size: {}x{}'.format(size, size))
-        #print('Next player to move: ', player)
 
         # 2. Load board into matrix
         board = []
