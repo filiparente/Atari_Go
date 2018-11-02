@@ -1,4 +1,5 @@
 from copy import deepcopy
+infinity = 9999
 
 class Group:
     """
@@ -9,12 +10,11 @@ class Group:
         - 'n_liberties' - number of liberties of the group
 
     """
-    def __init__(self, player, initial_element):
+    def __init__(self, initial_element):
         """
 
         :param initial_element: tuple with point coordinates
         """
-        self.player = player
         self.elements = [initial_element]
         self.liberties = set()
         self.n_liberties = 0
@@ -123,6 +123,7 @@ class State:
 
     def __init__(self, player, size, initial_board):
         self.player = player
+        self.draw = False
         self.size = size
 
         group_board, player_groups, player_counters = self.initialize_groups(initial_board)
@@ -208,7 +209,7 @@ class State:
                     # if no merging neighbors were found, than just creates a new group
                     if group_board[row][col] == 0:
                         group_board[row][col] = counters[player]
-                        groups[player][counters[player]] = Group(player, (row, col))
+                        groups[player][counters[player]] = Group((row, col))
                         counters[player] += 2
 
                     # Finally, add information about group's liberties to the structure
@@ -228,9 +229,6 @@ class State:
         # Update group board and groups
         self.update_groups(a)
 
-    def update_liberties(self):
-
-
     def update_player(self):
         """
         Update info about next player
@@ -240,7 +238,7 @@ class State:
         else:
             self.player = 1
 
-    def find_neighboring_groups(self, group_list, row, col, player):
+    def find_neighboring_groups(self, group_list, neighbor_pos, my_pos, player):
         """
         This function finds the neighboring groups, and updates
         their liberties
@@ -251,12 +249,14 @@ class State:
         :param player:
         :return:
         """
-        if self.group_board[row][col] != 0:  # Found a group
+        group = self.group_board[neighbor_pos[0]][neighbor_pos[1]]
+        if group != 0:  # Found a group
+            neighbor_player = self.get_group_player(group)
             # removes liberty corresponding to current point
-            self.groups[player][self.group_board[row][col]].remove_liberty(row, col)
+            self.groups[neighbor_player][group].remove_liberty(my_pos[0], my_pos[1])
             # if same group, adds to group list
-            if self.group_board[row][col].player  == player:
-                group_list.add(self.group_board[row][col])
+            if neighbor_player == player:
+                group_list.add(group)
 
         return group_list
 
@@ -281,23 +281,25 @@ class State:
 
         # Look up for same player groups
         if row - 1 >= 0:
-            wanted_group_list = self.find_neighboring_groups(wanted_group_list, row - 1, col, player)
+            wanted_group_list = self.find_neighboring_groups(wanted_group_list, (row - 1, col), new_element[0], player)
         # Look down
         if row + 1 < self.size:
-            wanted_group_list = self.find_neighboring_groups(wanted_group_list, row + 1, col, player)
+            wanted_group_list = self.find_neighboring_groups(wanted_group_list, (row + 1, col), new_element[0],player)
         # Look right
         if col + 1 < self.size:
-            wanted_group_list = self.find_neighboring_groups(wanted_group_list, row, col + 1, player)
+            wanted_group_list = self.find_neighboring_groups(wanted_group_list, (row, col + 1), new_element[0], player)
         # Look left
         if col - 1 >= 0:
-            wanted_group_list = self.find_neighboring_groups(wanted_group_list, row, col - 1, player)
+            wanted_group_list = self.find_neighboring_groups(wanted_group_list, (row, col - 1), new_element[0], player)
 
         if len(wanted_group_list) >= 1:  # Want to join to more than 1 group
 
             # Insert me in the first group (ordered)
             first_group = wanted_group_list.pop()
 
+            # add element along with its liberties
             self.groups[player][first_group].add_element(new_element)
+            self.groups[player][first_group].add_liberties(row, col, self.group_board)
 
             # Update group board accordingly
             self.group_board[row][col] = first_group
@@ -326,7 +328,35 @@ class State:
             group = self.group_board[row][col]
             self.groups[player][group].add_liberties(row, col, self.group_board)
 
+    def get_neighbors(self, row, col):
+        """returns list of tuples (neighbour_color, #liberties)
+        """
 
+        board_size = self.size
+        neighbors = list()
+        coords = [(row - 1, col), (row + 1, col), (row, col - 1), (row, col + 1)]
+
+        for coord in coords:
+            row = coord[0]
+            col = coord[1]
+
+            if (row >= 0 and row < board_size) and (col >= 0 and col < board_size):
+
+                group = self.group_board[row][col]
+
+                if group == 0:
+                    neighbors.append((0, -1))
+                else:
+                    color = self.get_group_player(group)
+                    neighbors.append((color, self.groups[color][group].n_liberties))
+
+        return neighbors
+
+    def get_group_player(self, group_number):
+        if group_number % 2 == 0:
+            return 2
+        else:
+            return 1
 
 class Game:
     """
@@ -356,8 +386,35 @@ class Game:
         return s.player
 
     def terminal_test(self, s):
-        """Returns a boolean of whether state s is terminal."""
-        return not self.actions(s)
+        """Returns a boolean of whether state s is terminal.
+
+        The procedure is the following:
+            - the current player must have at least one liberty on
+            all its groups;
+            - if the condition above verifies, there still need to
+            be a non empty list of possible actions given the state s
+
+        If any of the conditions above is violated the state is terminal.
+
+        The winner is also updated in the state.
+        """
+        terminal_state = False
+
+        player = s.player
+        # verifies that no group has 0 liberties
+        for group in s.groups[player].keys():
+            if s.groups[player][group].n_liberties == 0:
+                terminal_state = True
+
+        # no group was closed, must verify if there's a possible action
+        # to play
+        if not terminal_state:
+            possible_actions = self.actions(s)
+            if not possible_actions:
+                terminal_state = True
+                s.draw = True
+
+        return terminal_state
 
     def utility(self, s, player):
         """Returns the payoff of state s if it is terminal (1 if p wins, -1
@@ -365,40 +422,88 @@ class Game:
         to player p.
         To calculate the evaluation it uses the alpha beta cut
         off search, described further below"""
-        raise NotImplementedError
+
+        if not s.draw:
+            self.terminal_test(s)
+        if s.draw:
+            return 0
+
+        own_min = infinity
+        for group in s.groups[player].values():
+            if group.n_liberties < own_min:
+                own_min = group.n_liberties
+
+        other_min = infinity
+        for group in s.groups[3-player].values():
+            if group.n_liberties < other_min:
+                other_min = group.n_liberties
+
+        if other_min == 0 and s.player != player:
+            return 1
+        elif other_min == 0 and s.player == player:
+            return -1
+
+        if own_min == 1 and s.player != player:
+            return -1
+
+        #return (lambda * (own_min/(own_min+other_min)) + (1-lambda)* ((own_min-other_min)/(own_min+other_min)))
+        return ((own_min-other_min)/(own_min+other_min))
+
+
+
+
 
     def actions(self, s):
-        """Returns a list of valid moves at state s."""
+        """Returns a list of valid moves at state s.
 
-        # iterate board
+        Because we use 0 based board indexation in our implementation and the API states that 1 based
+        indexation should be used, we have so add one from each coordinate when an action is returned
 
-            # if position == 0:
+        """
 
-                # if any neighbor is empty:
-                    # add point to list of allowed actions
-                    # continue to next point
+        actions_set = set()
 
-                # if any neighbor is the same color and has 1+ liberties:
-                    # add point to list of allowed actions
-                    # continue to next point
+        for row in range(s.size):
+            for col in range(s.size):
 
-                # if any neighbor is the other color and has only 1 liberty: (suicide+kill play)
-                    # add point to list of allowed actions
+                if s.group_board[row][col] == 0:
 
-        # return actions
+                    neighbors = s.get_neighbors(row, col)
 
-        raise NotImplementedError
-    
+                    for neighbor in neighbors:
+
+                        neighbor_color = neighbor[0]
+                        neighbor_liberties = neighbor[1]
+
+                        if neighbor_color == 0:
+                            actions_set.add((s.player, row+1, col+1))
+                            continue
+
+                        if neighbor_color == s.player and neighbor_liberties > 1:
+                            actions_set.add((s.player, row+1, col+1))
+                            continue
+
+                        if neighbor_color != s.player and neighbor_liberties == 1:
+                            actions_set.add((s.player, row+1, col+1))
+                            continue
+
+        return list(actions_set)
+
     def result(self, s, a):
         """
         Return the state that results from making action a from state s.
 
+        Because we use 0 based board indexation in our implementation and the API states that 1 based
+        indexation should be used, we have so subtract one from each coordinate when an action is received
+
         Generates next state (allocates new memory).
         """
+        a = (a[0], a[1]-1, a[2]-1)
+
         # Initialize successor state
         successor_s = deepcopy(s)
         
-        #Assuming that action a is a valid action (verified before), next state is updated accordingly
+        # Assuming that action a is a valid action (verified before), next state is updated accordingly
         successor_s.update_state(a)
         
         return successor_s
@@ -415,8 +520,8 @@ class Game:
         #   - next player to move
         line1 = file.readline()
         size, player = map(int, line1.split(' '))
-        print('Board size: {}x{}'.format(size, size))
-        print('Next player to move: ', player)
+        #print('Board size: {}x{}'.format(size, size))
+        #print('Next player to move: ', player)
 
         # 2. Load board into matrix
         board = []
@@ -492,6 +597,7 @@ def alphabeta_cutoff_search(state, game, d=4, cutoff_test=None, eval_fn=None):
     best_action = None
     for a in game.actions(state):
         v = min_value(game.result(state, a), best_score, beta, 1)
+        print(v, a)
         if v > best_score:
             best_score = v
             best_action = a
