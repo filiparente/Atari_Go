@@ -226,6 +226,9 @@ class State:
         # Next player
         self.update_player()
 
+        # Reset draw
+        self.draw = False
+
         # Update group board and groups
         self.update_groups(a)
 
@@ -400,11 +403,14 @@ class Game:
         """
         terminal_state = False
 
-        player = s.player
         # verifies that no group has 0 liberties
-        for group in s.groups[player].keys():
-            if s.groups[player][group].n_liberties == 0:
-                terminal_state = True
+        for player in [1,2]:
+            for group in s.groups[player].keys():
+                if s.groups[player][group].n_liberties == 0:
+                    terminal_state = True
+                    #if self.utility(s, 1) == 1:
+                    #    if self.utility(s,2) == -1:
+                    #        print('<Terminal>', s.group_board)
 
         # no group was closed, must verify if there's a possible action
         # to play
@@ -412,6 +418,9 @@ class Game:
             possible_actions = self.actions(s)
             if not possible_actions:
                 terminal_state = True
+                #if self.utility(s,1) == 1:
+                #    if self.utility(s, 2) == -1:
+                #        print('<Terminal>', s.group_board)
                 s.draw = True
 
         return terminal_state
@@ -421,13 +430,18 @@ class Game:
         if p loses, 0 in case of a draw), otherwise, its evaluation with respect
         to player p.
         To calculate the evaluation it uses the alpha beta cut
-        off search, described further below"""
+        off search, described further below
+
+        s.player - player that is going to play this round
+        player - being evaluated
+        """
 
         if not s.draw:
             self.terminal_test(s)
         if s.draw:
             return 0
 
+        # calculate liberties of group with less liberties
         own_min = infinity
         for group in s.groups[player].values():
             if group.n_liberties < own_min:
@@ -438,17 +452,22 @@ class Game:
             if group.n_liberties < other_min:
                 other_min = group.n_liberties
 
-        if other_min == 0 and s.player != player:
-            return 1
-        elif other_min == 0 and s.player == player:
-            return -1
+        # verifies suicidal kill
+        if other_min == 0 and own_min == 0:
+            if s.player != player:
+                return 1
+            else:
+                return -1
 
-        if own_min == 1 and s.player != player:
+        # regular win
+        if other_min == 0:
+            return 1
+        # regular death
+        if own_min == 0:
             return -1
 
         #return (lambda * (own_min/(own_min+other_min)) + (1-lambda)* ((own_min-other_min)/(own_min+other_min)))
         return ((own_min-other_min)/(own_min+other_min))
-
 
 
 
@@ -596,8 +615,8 @@ def alphabeta_cutoff_search(state, game, d=4, cutoff_test=None, eval_fn=None):
     beta = infinity
     best_action = None
     for a in game.actions(state):
+        print(a)
         v = min_value(game.result(state, a), best_score, beta, 1)
-        print(v, a)
         if v > best_score:
             best_score = v
             best_action = a
