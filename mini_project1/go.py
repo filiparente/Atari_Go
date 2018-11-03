@@ -471,8 +471,8 @@ class Game:
             return -1
 
         #return (lambda * (own_min/(own_min+other_min)) + (1-lambda)* ((own_min-other_min)/(own_min+other_min)))
-        #return ((own_min-other_min)/(own_min+other_min))
-        return ((own_liberties-other_liberties)/(own_liberties+other_liberties))
+        return ((own_min-other_min)/(own_min+other_min))
+        #return ((own_liberties-other_liberties)/(own_liberties+other_liberties))
 
     def actions(self, s):
         """Returns a list of valid moves at state s.
