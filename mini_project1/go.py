@@ -128,7 +128,6 @@ class State:
 
     def __init__(self, player, size, initial_board, copy=False):
         self.player = player
-        self.empty_actions = -1
         self.draw = -1
         self.size = size
         self.group_board = None
@@ -259,12 +258,11 @@ class State:
 
     def update_player(self):
         """
-        Update info about next player
+        Update info about next player to move.
+        Since players are either 1 or 2, we can
+        simply subtract 3 - player
         """
-        if self.player == 1:
-            self.player = 2
-        else:
-            self.player = 1
+        self.player = 3 - self.player
 
     def find_neighboring_groups(self, group_list, neighbor_pos, my_pos, player):
         """
@@ -419,11 +417,7 @@ class Game:
         # to play
 
         if not terminal_state:
-            # actions not calculated yet
-            if s.empty_actions == 1:
-                possible_actions = []
-            if s.empty_actions == -1:
-                possible_actions = self.actions(s)
+            possible_actions = self.actions(s)
 
             if len(possible_actions) == 0:
                 terminal_state = True
@@ -481,7 +475,8 @@ class Game:
         #return ((own_liberties-other_liberties)/(own_liberties+other_liberties))
 
     def actions(self, s):
-        """Returns a list of valid moves at state s.
+        """
+        Returns a list of valid moves at state s.
 
         Because we use 0 based board indexation in our implementation and the API states that 1 based
         indexation should be used, we have so add one from each coordinate when an action is returned
@@ -514,11 +509,6 @@ class Game:
                             actions.append((s.player, row + 1, col + 1))
                             continue
 
-        if not actions:
-            s.empty_actions = 1 #no actions
-        else:
-            s.empty_actions = 0 #there are still valid actions
-
         return actions
 
     def not_suicide(self, s, row, col):
@@ -528,7 +518,7 @@ class Game:
         if group == 0:
             return True
 
-        player = self.get_group_player(group)
+        player = s.get_group_player(group)
         group_liberties = s.groups[player][group].n_liberties
 
         if player == s.player and group_liberties > 1:
@@ -538,12 +528,6 @@ class Game:
             return True
 
         return False
-
-    def get_group_player(self, group_number):
-        if group_number % 2 == 0:
-            return 2
-        else:
-            return 1
 
     def result(self, s, a):
         """
@@ -584,22 +568,6 @@ class Game:
 
         return s
 
-    def __repr__(self):
-        return '<{}>'.format(self.__class__.__name__)
-
-    def play_game(self, *players):
-        """Play an n-person, move-alternating game."""
-        state = self.initial
-        while True:
-            for player in players:
-                move = player(self, state)
-                state = self.result(state, move)
-                if self.terminal_test(state):
-                    self.display(state)
-                    return self.utility(state, self.to_move(self.initial))
-
-global BEST_STATE
-BEST_STATE = None
 
 # SEARCH algorithm (manually imported into the project, see source in description):
 def alphabeta_cutoff_search(state, game, d=4, cutoff_test=None, eval_fn=None):
@@ -616,8 +584,6 @@ def alphabeta_cutoff_search(state, game, d=4, cutoff_test=None, eval_fn=None):
     # Functions used by alphabeta
     def max_value(state, alpha, beta, depth):
         if cutoff_test(state, depth):
-            global BEST_STATE
-            BEST_STATE= state
             return eval_fn(state)
         v = -infinity
         for a in game.actions(state):
@@ -630,8 +596,6 @@ def alphabeta_cutoff_search(state, game, d=4, cutoff_test=None, eval_fn=None):
 
     def min_value(state, alpha, beta, depth):
         if cutoff_test(state, depth):
-            global BEST_STATE
-            BEST_STATE= state
             return eval_fn(state)
         v = infinity
         for a in game.actions(state):
