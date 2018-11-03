@@ -508,7 +508,9 @@ class Game:
                             actions_set.add((s.player, row+1, col+1))
                             continue
 
-        return list(actions_set)
+        actions = sorted(list(actions_set), key=lambda tup: (tup[1], tup[2]))
+
+        return actions
 
     def result(self, s, a):
         """
@@ -563,6 +565,8 @@ class Game:
                     self.display(state)
                     return self.utility(state, self.to_move(self.initial))
 
+global BEST_STATE
+BEST_STATE = None
 
 # SEARCH algorithm (manually imported into the project, see source in description):
 def alphabeta_cutoff_search(state, game, d=4, cutoff_test=None, eval_fn=None):
@@ -579,6 +583,8 @@ def alphabeta_cutoff_search(state, game, d=4, cutoff_test=None, eval_fn=None):
     # Functions used by alphabeta
     def max_value(state, alpha, beta, depth):
         if cutoff_test(state, depth):
+            global BEST_STATE
+            BEST_STATE= state
             return eval_fn(state)
         v = -infinity
         for a in game.actions(state):
@@ -591,6 +597,8 @@ def alphabeta_cutoff_search(state, game, d=4, cutoff_test=None, eval_fn=None):
 
     def min_value(state, alpha, beta, depth):
         if cutoff_test(state, depth):
+            global BEST_STATE
+            BEST_STATE= state
             return eval_fn(state)
         v = infinity
         for a in game.actions(state):
@@ -616,4 +624,6 @@ def alphabeta_cutoff_search(state, game, d=4, cutoff_test=None, eval_fn=None):
         if v > best_score:
             best_score = v
             best_action = a
+            print(v)
+            print(BEST_STATE.group_board)
     return best_action
