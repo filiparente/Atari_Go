@@ -128,12 +128,12 @@ class State:
 
     def __init__(self, player, size, initial_board, copy=False):
         self.player = player
-        self.draw = False
+        self.empty_actions = -1
+        self.draw = -1
         self.size = size
         self.group_board = None
         self.groups = None
         self.counters = None
-
 
         if not copy:
             group_board, player_groups, player_counters = self.initialize_groups(initial_board)
@@ -405,6 +405,8 @@ class Game:
         The winner is also updated in the state.
         """
         terminal_state = False
+        # s.draw = 0 mean that the termina_test has been called (previously s.draw = -1)
+        s.draw = 0
 
         # verifies that no group has 0 liberties
         for player in [1,2]:
@@ -415,11 +417,17 @@ class Game:
 
         # no group was closed, must verify if there's a possible action
         # to play
+
         if not terminal_state:
-            possible_actions = self.actions(s)
-            if not possible_actions:
+            # actions not calculated yet
+            if s.empty_actions == 1:
+                possible_actions = []
+            if s.empty_actions == -1:
+                possible_actions = self.actions(s)
+
+            if len(possible_actions) == 0:
                 terminal_state = True
-                s.draw = True
+                s.draw = 1
 
         return terminal_state
 
@@ -434,9 +442,9 @@ class Game:
         player - being evaluated
         """
 
-        if not s.draw:
+        if s.draw == -1:  # terminal test not yet run
             self.terminal_test(s)
-        if s.draw:
+        if s.draw == 1:
             return 0
 
         # calculate liberties of group with less liberties
@@ -505,6 +513,11 @@ class Game:
                         if self.not_suicide(s, row, col + 1):
                             actions.append((s.player, row + 1, col + 1))
                             continue
+
+        if not actions:
+            s.empty_actions = 1 #no actions
+        else:
+            s.empty_actions = 0 #there are still valid actions
 
         return actions
 
@@ -643,6 +656,4 @@ def alphabeta_cutoff_search(state, game, d=4, cutoff_test=None, eval_fn=None):
         if v > best_score:
             best_score = v
             best_action = a
-            #print(v)
-            #print(BEST_STATE.group_board)
     return best_action
