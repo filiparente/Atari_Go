@@ -1,0 +1,149 @@
+MacBook-Pro-de-Simao:mini_project1 simaomoraessarmento$ python3 -m cProfile -s cumtime main.py
+         1563190753 function calls (1559602529 primitive calls) in 989.429 seconds
+
+   Ordered by: cumulative time
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+      2/1    0.000    0.000  989.429  989.429 {built-in method builtins.exec}
+        1    0.000    0.000  989.429  989.429 main.py:1(<module>)
+        1    0.000    0.000  989.427  989.427 go.py:600(alphabeta_cutoff_search)
+3403827/43    8.970    0.000  989.425   23.010 go.py:626(min_value)
+185026/587    5.423    0.000  989.380    1.685 go.py:612(max_value)
+  3745143  275.993    0.000  800.121    0.000 go.py:505(actions)
+  3589196    9.307    0.000  767.534    0.000 go.py:419(terminal_test)
+  3392168    1.630    0.000  739.179    0.000 go.py:645(<lambda>)
+  3392168   13.074    0.000  737.549    0.000 go.py:456(utility)
+142735228  333.786    0.000  387.468    0.000 go.py:360(get_neighbors)
+  3588853    4.191    0.000  145.798    0.000 go.py:543(result)
+  3588853   25.362    0.000   86.170    0.000 go.py:144(__copy__)
+  3745143   57.533    0.000   76.765    0.000 {built-in method builtins.sorted}
+436487415   61.515    0.000   61.515    0.000 {method 'add' of 'set' objects}
+  3588853    3.523    0.000   55.437    0.000 go.py:245(update_state)
+  3588853   17.155    0.000   50.712    0.000 go.py:292(update_groups)
+ 25284554   28.477    0.000   48.830    0.000 go.py:22(__copy__)
+  3588853    0.826    0.000   44.841    0.000 go.py:643(<lambda>)
+476088380   39.446    0.000   39.446    0.000 {method 'append' of 'list' objects}
+  3588859    8.108    0.000   21.185    0.000 go.py:64(add_liberties)
+142686599   19.232    0.000   19.232    0.000 go.py:539(<lambda>)
+ 91554465   14.728    0.000   14.728    0.000 go.py:385(get_group_player)
+ 27920204   14.031    0.000   14.031    0.000 go.py:13(__init__)
+  9808547    9.382    0.000   12.575    0.000 go.py:37(add_liberty)
+ 12017149    6.151    0.000    9.054    0.000 go.py:269(find_neighboring_groups)
+  3588853    5.406    0.000    8.579    0.000 go.py:147(<listcomp>)
+ 50406525    6.088    0.000    6.088    0.000 {method 'copy' of 'list' objects}
+ 25284554    4.777    0.000    4.777    0.000 {method 'copy' of 'set' objects}
+ 33019331    3.225    0.000    3.225    0.000 {built-in method builtins.len}
+  3588854    2.522    0.000    2.522    0.000 go.py:129(__init__)
+  2400952    1.657    0.000    2.265    0.000 go.py:51(remove_liberty)
+  6635357    2.193    0.000    2.193    0.000 {built-in method builtins.max}
+ 13962728    1.959    0.000    1.959    0.000 {method 'values' of 'dict' objects}
+  3588853    1.203    0.000    1.203    0.000 go.py:260(update_player)
+  7177706    0.877    0.000    0.877    0.000 {method 'items' of 'dict' objects}
+  1040486    0.417    0.000    0.623    0.000 go.py:31(add_element)
+  2400952    0.608    0.000    0.608    0.000 {method 'remove' of 'set' objects}
+    87277    0.139    0.000    0.408    0.000 go.py:89(merge_groups)
+  1040486    0.206    0.000    0.206    0.000 {method 'extend' of 'list' objects}
+   953207    0.152    0.000    0.152    0.000 {method 'pop' of 'set' objects}
+   358811    0.126    0.000    0.126    0.000 {built-in method builtins.min}
+    87277    0.029    0.000    0.029    0.000 {method 'pop' of 'dict' objects}
+        1    0.000    0.000    0.001    0.001 <frozen importlib._bootstrap>:966(_find_and_load)
+        1    0.000    0.000    0.001    0.001 <frozen importlib._bootstrap>:936(_find_and_load_unlocked)
+        1    0.000    0.000    0.001    0.001 <frozen importlib._bootstrap>:651(_load_unlocked)
+        1    0.000    0.000    0.001    0.001 <frozen importlib._bootstrap_external>:672(exec_module)
+        1    0.000    0.000    0.001    0.001 <frozen importlib._bootstrap_external>:743(get_code)
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:830(get_data)
+        1    0.000    0.000    0.000    0.000 {method 'read' of '_io.FileIO' objects}
+        1    0.000    0.000    0.000    0.000 go.py:562(load_board)
+        1    0.000    0.000    0.000    0.000 go.py:158(initialize_groups)
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:211(_call_with_frames_removed)
+        1    0.000    0.000    0.000    0.000 go.py:1(<module>)
+        3    0.000    0.000    0.000    0.000 {built-in method builtins.__build_class__}
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:870(_find_spec)
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:485(_compile_bytecode)
+        1    0.000    0.000    0.000    0.000 {built-in method marshal.loads}
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:1149(find_spec)
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:1117(_get_spec)
+        1    0.000    0.000    0.000    0.000 {built-in method io.open}
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:1233(find_spec)
+        8    0.000    0.000    0.000    0.000 {method 'readline' of '_io.TextIOWrapper' objects}
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:564(module_from_spec)
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:1080(_path_importer_cache)
+        1    0.000    0.000    0.000    0.000 {built-in method posix.getcwd}
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:504(_init_module_attrs)
+        3    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:75(_path_stat)
+        3    0.000    0.000    0.000    0.000 {built-in method posix.stat}
+        2    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:263(cache_from_source)
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:147(__enter__)
+        2    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:403(cached)
+        6    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:57(_path_join)
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:361(_get_cached)
+        7    0.000    0.000    0.000    0.000 go.py:575(<listcomp>)
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:430(_validate_bytecode_header)
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:157(_get_module_lock)
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:318(__exit__)
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:94(_path_isfile)
+        6    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:59(<listcomp>)
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:840(path_stats)
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:1228(_get_spec)
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:85(_path_is_mode_type)
+        2    0.000    0.000    0.000    0.000 codecs.py:318(decode)
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:151(__exit__)
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:524(spec_from_file_location)
+        1    0.000    0.000    0.000    0.000 _bootlocale.py:23(getpreferredencoding)
+        2    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:52(_r_long)
+        8    0.000    0.000    0.000    0.000 {method 'split' of 'str' objects}
+       14    0.000    0.000    0.000    0.000 {method 'rstrip' of 'str' objects}
+        7    0.000    0.000    0.000    0.000 {method 'rpartition' of 'str' objects}
+        6    0.000    0.000    0.000    0.000 {built-in method builtins.getattr}
+        4    0.000    0.000    0.000    0.000 {built-in method builtins.hasattr}
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:58(__init__)
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:78(acquire)
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:103(release)
+        2    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:63(_path_split)
+        1    0.000    0.000    0.000    0.000 go.py:181(<listcomp>)
+        8    0.000    0.000    0.000    0.000 {method 'join' of 'str' objects}
+        1    0.000    0.000    0.000    0.000 {built-in method builtins.any}
+        1    0.000    0.000    0.000    0.000 {built-in method _locale.nl_langinfo}
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:176(cb)
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:707(find_spec)
+        3    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:847(__exit__)
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:997(_handle_fromlist)
+        1    0.000    0.000    0.000    0.000 codecs.py:308(__init__)
+        2    0.000    0.000    0.000    0.000 {built-in method from_bytes}
+        2    0.000    0.000    0.000    0.000 {built-in method _codecs.utf_8_decode}
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:35(_new_module)
+        7    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:222(_verbose_message)
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:780(find_spec)
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:393(_check_name_wrapper)
+        1    0.000    0.000    0.000    0.000 go.py:4(Group)
+        1    0.000    0.000    0.000    0.000 go.py:112(State)
+        1    0.000    0.000    0.000    0.000 {method 'endswith' of 'str' objects}
+        2    0.000    0.000    0.000    0.000 {built-in method builtins.isinstance}
+        5    0.000    0.000    0.000    0.000 {built-in method _imp.acquire_lock}
+        1    0.000    0.000    0.000    0.000 {built-in method _imp.is_builtin}
+        1    0.000    0.000    0.000    0.000 {built-in method _imp._fix_co_filename}
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:143(__init__)
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:311(__enter__)
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:369(__init__)
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:416(parent)
+        3    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:843(__enter__)
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:800(__init__)
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:825(get_filename)
+        1    0.000    0.000    0.000    0.000 codecs.py:259(__init__)
+        1    0.000    0.000    0.000    0.000 go.py:415(to_move)
+        1    0.000    0.000    0.000    0.000 go.py:392(Game)
+        2    0.000    0.000    0.000    0.000 {method 'get' of 'dict' objects}
+        5    0.000    0.000    0.000    0.000 {built-in method _imp.release_lock}
+        1    0.000    0.000    0.000    0.000 {built-in method _imp.is_frozen}
+        2    0.000    0.000    0.000    0.000 {built-in method _thread.allocate_lock}
+        2    0.000    0.000    0.000    0.000 {built-in method _thread.get_ident}
+        3    0.000    0.000    0.000    0.000 {built-in method posix.fspath}
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:37(_relax_case)
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:307(__init__)
+        4    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:321(<genexpr>)
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:424(has_location)
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:669(create_module)
+        2    0.000    0.000    0.000    0.000 codecs.py:330(getstate)
+        1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+
+
