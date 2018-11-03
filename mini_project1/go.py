@@ -1,5 +1,5 @@
-from copy import deepcopy
 infinity = 9999
+
 
 class Group:
     """
@@ -18,6 +18,15 @@ class Group:
         self.elements = [initial_element]
         self.liberties = set()
         self.n_liberties = 0
+
+    def __copy__(self):
+        new_group = Group(None)
+
+        new_group.elements = self.elements.copy()
+        new_group.liberties = self.liberties.copy()
+        new_group.n_liberties = self.n_liberties
+
+        return new_group
 
     def add_element(self, element):
         """
@@ -117,15 +126,34 @@ class State:
     3) to make it more intuitive, groups for player 1 are odd, whereas groups for player 2 are even
     """
 
-    def __init__(self, player, size, initial_board):
+    def __init__(self, player, size, initial_board, copy=False):
         self.player = player
         self.draw = False
         self.size = size
+        self.group_board = None
+        self.groups = None
+        self.counters = None
 
-        group_board, player_groups, player_counters = self.initialize_groups(initial_board)
-        self.group_board = group_board
-        self.groups = player_groups
-        self.counters = player_counters
+
+        if not copy:
+            group_board, player_groups, player_counters = self.initialize_groups(initial_board)
+            self.group_board = group_board
+            self.groups = player_groups
+            self.counters = player_counters
+
+    def __copy__(self):
+        new_state = State(self.player, self.size, None, copy=True)
+
+        new_state.group_board = [row.copy() for row in self.group_board]
+        new_state.counters = {1: self.counters[1], 2: self.counters[2]}
+
+        new_groups = dict({1: dict(), 2: dict()})
+        for player in [1,2]:
+            for k, v in self.groups[player].items():
+                new_groups[player][k] = v.__copy__()
+        new_state.groups = new_groups
+
+        return new_state
 
     def initialize_groups(self, initial_board):
         """
@@ -524,7 +552,7 @@ class Game:
         a = (a[0], a[1]-1, a[2]-1)
 
         # Initialize successor state
-        successor_s = deepcopy(s)
+        successor_s = s.__copy__()
         
         # Assuming that action a is a valid action (verified before), next state is updated accordingly
         successor_s.update_state(a)
@@ -619,11 +647,10 @@ def alphabeta_cutoff_search(state, game, d=4, cutoff_test=None, eval_fn=None):
     beta = infinity
     best_action = None
     for a in game.actions(state):
-        print(a)
         v = min_value(game.result(state, a), best_score, beta, 1)
         if v > best_score:
             best_score = v
             best_action = a
-            print(v)
-            print(BEST_STATE.group_board)
+            #print(v)
+            #print(BEST_STATE.group_board)
     return best_action

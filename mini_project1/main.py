@@ -1,10 +1,13 @@
 from go import *
-import numpy as np
 
-# 1. LOAD EXAMPLE FILE
-file = open("example5.txt")
+file_path = "/Users/simaomoraessarmento/Dropbox/IST/S1/IA/Artificial_Intelligence_IST/mini_project1/examples/test_05_long.txt"
+file = open(file_path)
 
-# 2. INITIALIZE Go
-go = Game()
-board = go.load_board(file)
+
+game = Game()
+s = game.load_board(file)
+act = game.actions(s)
+
+
+alphabeta_cutoff_search(s, game, d=4, cutoff_test=None, eval_fn=None)
 
