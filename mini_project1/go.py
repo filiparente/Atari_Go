@@ -357,31 +357,6 @@ class State:
             group = self.group_board[row][col]
             self.groups[player][group].add_liberties(row, col, self.group_board)
 
-    def get_neighbors(self, row, col):
-        """
-        returns list of tuples (neighbour_color, #liberties)
-        """
-
-        board_size = self.size
-        neighbors = list()
-        coords = [(row - 1, col), (row + 1, col), (row, col - 1), (row, col + 1)]
-
-        for coord in coords:
-            row = coord[0]
-            col = coord[1]
-
-            if (row >= 0 and row < board_size) and (col >= 0 and col < board_size):
-
-                group = self.group_board[row][col]
-
-                if group == 0:
-                    neighbors.append((0, -1))
-                else:
-                    color = self.get_group_player(group)
-                    neighbors.append((color, self.groups[color][group].n_liberties))
-
-        return neighbors
-
     def get_group_player(self, group_number):
         if group_number % 2 == 0:
             return 2
@@ -436,9 +411,7 @@ class Game:
             for group in s.groups[player].values():
                 if group.n_liberties == 0:
                     terminal_state = True
-                    #if self.utility(s, 1) == 1:
-                    #    if self.utility(s,2) == -1:
-                    #        print('<Terminal>', s.group_board)
+
 
         # no group was closed, must verify if there's a possible action
         # to play
@@ -446,9 +419,6 @@ class Game:
             possible_actions = self.actions(s)
             if not possible_actions:
                 terminal_state = True
-                #if self.utility(s,1) == 1:
-                #    if self.utility(s, 2) == -1:
-                #        print('<Terminal>', s.group_board)
                 s.draw = True
 
         return terminal_state
@@ -510,35 +480,57 @@ class Game:
 
         """
 
-        actions_set = set()
+        actions = list()
 
         for row in range(s.size):
             for col in range(s.size):
 
                 if s.group_board[row][col] == 0:
-
-                    neighbors = s.get_neighbors(row, col)
-
-                    for neighbor in neighbors:
-
-                        neighbor_color = neighbor[0]
-                        neighbor_liberties = neighbor[1]
-
-                        if neighbor_color == 0:
-                            actions_set.add((s.player, row+1, col+1))
+                    if row - 1 >= 0:
+                        if self.not_suicide(s, row-1, col):
+                            actions.append((s.player, row + 1, col + 1))
                             continue
 
-                        if neighbor_color == s.player and neighbor_liberties > 1:
-                            actions_set.add((s.player, row+1, col+1))
+                    if row + 1 < s.size:
+                        if self.not_suicide(s, row + 1, col):
+                            actions.append((s.player, row + 1, col + 1))
                             continue
 
-                        if neighbor_color != s.player and neighbor_liberties == 1:
-                            actions_set.add((s.player, row+1, col+1))
+                    if col - 1 >= 0:
+                        if self.not_suicide(s, row, col - 1):
+                            actions.append((s.player, row + 1, col + 1))
                             continue
 
-        actions = sorted(list(actions_set), key=lambda tup: (tup[1], tup[2]))
+                    if col + 1 < s.size:
+                        if self.not_suicide(s, row, col + 1):
+                            actions.append((s.player, row + 1, col + 1))
+                            continue
 
         return actions
+
+    def not_suicide(self, s, row, col):
+
+        group = s.group_board[row][col]
+
+        if group == 0:
+            return True
+
+        player = self.get_group_player(group)
+        group_liberties = s.groups[player][group].n_liberties
+
+        if player == s.player and group_liberties > 1:
+            return True
+
+        if player != s.player and group_liberties == 1:
+            return True
+
+        return False
+
+    def get_group_player(self, group_number):
+        if group_number % 2 == 0:
+            return 2
+        else:
+            return 1
 
     def result(self, s, a):
         """
