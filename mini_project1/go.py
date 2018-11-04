@@ -1,6 +1,5 @@
 infinity = 9999
 
-
 class Group:
     """
     This class stores the necessary values for the group identification, namely:
@@ -18,6 +17,7 @@ class Group:
         self.elements = [initial_element]
         self.liberties = set()
         self.n_liberties = 0
+        self.n_elements = len(self.elements)
 
     def __copy__(self):
         new_group = Group(None)
@@ -33,6 +33,7 @@ class Group:
         Adds a list of elements (list of tuples) to the group.
         """
         self.elements.extend(element)
+        self.n_elements += len(element)
 
     def add_liberty(self, liberty):
         """
@@ -45,8 +46,7 @@ class Group:
         self.liberties.add(liberty)  # only adds to the set if the element is not present already
         updated_len = len(self.liberties)
 
-        if previous_len < updated_len:
-            self.n_liberties += 1
+        self.n_liberties += (updated_len - previous_len)
 
     def remove_liberty(self, row, col):
         """
@@ -66,12 +66,12 @@ class Group:
         This function calculates the liberties for the given point,
         and updates the corresponding group information regarding so.
 
+        All 4 neighbors are checked. If the neighbor is empty (= 0) it's a liberty.
+
         :param row: row point position
         :param col: col point position
         :param board: matrix with board pieces
         """
-
-        # check all 4 neighbors. If the neighbor is empty (= 0) it's a liberty
 
         if row - 1 >= 0:
             if board[row - 1][col] == 0:
@@ -133,11 +133,13 @@ class State:
         self.group_board = None
         self.groups = None
         self.counters = None
+        self.groups_min_size = None
 
         if not copy:
-            group_board, player_groups, player_counters = self.initialize_groups(initial_board)
+            group_board, player_groups, groups_min_size, player_counters = self.initialize_groups(initial_board)
             self.group_board = group_board
             self.groups = player_groups
+            self.groups_min_size = groups_min_size
             self.counters = player_counters
 
     def __copy__(self):
@@ -145,9 +147,10 @@ class State:
 
         new_state.group_board = [row.copy() for row in self.group_board]
         new_state.counters = {1: self.counters[1], 2: self.counters[2]}
+        new_state.groups_min_size = {1: self.groups_min_size[1], 2: self.groups_min_size[2]}
 
         new_groups = dict({1: dict(), 2: dict()})
-        for player in [1,2]:
+        for player in [1, 2]:
             for k, v in self.groups[player].items():
                 new_groups[player][k] = v.__copy__()
         new_state.groups = new_groups
@@ -229,7 +232,7 @@ class State:
                                 new_elements = [(row, col)]
                                 groups[player][group_board[row][col]].add_element(new_elements)
 
-                    # if no merging neighbors were found, than just creates a new group
+                    # if no merging neighbors were found, then just creates a new group
                     if group_board[row][col] == 0:
                         group_board[row][col] = counters[player]
                         groups[player][counters[player]] = Group((row, col))
@@ -239,7 +242,15 @@ class State:
                     group = group_board[row][col]
                     groups[player][group].add_liberties(row, col, initial_board)
 
-        return group_board, groups, counters
+        # TODO: check if this the most efficient way to do this ==============================================
+        groups_min_size = dict()
+        for player in [1, 2]:
+            min_group_size = self.size * self.size
+            for group in groups[player].values():
+                if group.n_elements < min_group_size:
+                    min_group_size = group.n_elements
+            groups_min_size[player] = min_group_size
+        return group_board, groups, groups_min_size, counters
 
     def update_state(self, a):
         """
@@ -304,7 +315,7 @@ class State:
 
         wanted_group_list = set()
 
-        # Check if there groups nearby
+        # Check if there are groups nearby
 
         # Look up for same player groups
         if row - 1 >= 0:
@@ -319,7 +330,7 @@ class State:
         if col - 1 >= 0:
             wanted_group_list = self.find_neighboring_groups(wanted_group_list, (row, col - 1), new_element[0], player)
 
-        if len(wanted_group_list) >= 1:  # Want to join to more than 1 group
+        if len(wanted_group_list) >= 1:  # Wants to join at least one group
 
             # Insert me in the first group (ordered)
             first_group = wanted_group_list.pop()
@@ -344,6 +355,13 @@ class State:
                 for old_element_row, old_element_col in elements_to_merge:
                     self.group_board[old_element_row][old_element_col] = self.group_board[row][col]
 
+            # TODO: check if this the most efficient way to do this ==============================================
+            min_group_size = self.size * self.size
+            for group in self.groups[player].values():
+                if group.n_elements < min_group_size:
+                    min_group_size = group.n_elements
+            self.groups_min_size[player] = min_group_size
+
         elif len(wanted_group_list) == 0:  # Alone
             # Create a new group for myself
             self.groups[player][self.counters[player]] = Group((row, col))
@@ -354,6 +372,9 @@ class State:
             # Add liberties to group
             group = self.group_board[row][col]
             self.groups[player][group].add_liberties(row, col, self.group_board)
+
+            # TODO: check if this the most efficient way to do this ==============================================
+            self.groups_min_size[player] = 1
 
     def get_group_player(self, group_number):
         if group_number % 2 == 0:
@@ -435,6 +456,7 @@ class Game:
         s.player - player that is going to play this round
         player - being evaluated
         """
+        k = 0.4
 
         if s.draw == -1:  # terminal test not yet run
             self.terminal_test(s)
@@ -470,9 +492,13 @@ class Game:
         if own_min == 0:
             return -1
 
+        own_group_min = s.groups_min_size[player]
+
+        # return (own_min - other_min) / (own_min + other_min)
         #return (lambda * (own_min/(own_min+other_min)) + (1-lambda)* ((own_min-other_min)/(own_min+other_min)))
-        return ((own_min-other_min)/(own_min+other_min))
-        #return ((own_liberties-other_liberties)/(own_liberties+other_liberties))
+        # return ((own_liberties-other_liberties)/(own_liberties+other_liberties))
+        #return (k * own_min - (1 - k) * other_min) / (k * own_min + (1 - k) * other_min)
+        return (own_min + own_group_min - other_min) / (own_min + own_group_min + other_min)
 
     def actions(self, s):
         """
