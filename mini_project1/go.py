@@ -12,7 +12,6 @@ class Group:
     """
     def __init__(self, initial_element):
         """
-
         :param initial_element: tuple with point coordinates
         """
         self.elements = [initial_element]
@@ -20,6 +19,11 @@ class Group:
         self.n_liberties = 0
 
     def __copy__(self):
+        """
+        Copies a group object info
+
+        :return: group object
+        """
         new_group = Group(None)
 
         new_group.elements = self.elements.copy()
@@ -31,6 +35,8 @@ class Group:
     def add_element(self, element):
         """
         Adds a list of elements (list of tuples) to the group.
+
+        :param: element - element to add to the group
         """
         self.elements.extend(element)
 
@@ -39,7 +45,9 @@ class Group:
         Tries to add a liberty. If size changes, it means
         liberty was not yet on the set and therefore number
         of liberties must be incremented, since liberty was
-        added
+        added.
+
+        :param: liberty - liberty to be added as a tuple
         """
         previous_len = len(self.liberties)
         self.liberties.add(liberty)  # only adds to the set if the element is not present already
@@ -114,8 +122,16 @@ class State:
     This class stores the necessary values for the state definition
 
     - player - defines next player to move
+    - size - defines the size of the board
+    - draw - this variable plays a flag role. Takes the values:
+            -1: if terminal test was not yet evaluated
+            0: if terminal test was evaluated, but no draw exists
+            1: if terminal test was evaluated, and a draw was found
+            By storing this information, we can avoid recomputing a terminal test
+            that has already been computed in an earlier stage, saving time.
     - group_board - displays the board with the component's groups
-    - groups - dictionary with a Group structure for player 1 and player 2
+    - groups - dictionary with group labels as keys and the corresponding Group
+               object associated as the value.
     - counters - dictionary with group counter for player 1 and player 2
 
     Note:
@@ -141,6 +157,11 @@ class State:
             self.counters = player_counters
 
     def __copy__(self):
+        """
+        Copies a state object
+
+        :return: a new State object
+        """
         new_state = State(self.player, self.size, None, copy=True)
 
         new_state.group_board = [row.copy() for row in self.group_board]
@@ -273,7 +294,7 @@ class State:
         :param neighbor_pos: position of neighbor
         :param my_pos: current move position
         :param player: color to play
-        :return updated seet of groups to merge
+        :return updated set of groups to merge
         """
 
         group = self.group_board[neighbor_pos[0]][neighbor_pos[1]]
@@ -291,9 +312,8 @@ class State:
         """
         Function responsible for updating the state after
         having played a certain move.
-        :param previous_s: state before move is played
-        :param next_s: state after move is played
-        :param move: action played
+
+        :param move: action played as an action tuple (p, i, j)
         :return: updated state
         """
         player = move[0]
@@ -356,6 +376,12 @@ class State:
             self.groups[player][group].add_liberties(row, col, self.group_board)
 
     def get_group_player(self, group_number):
+        """
+        Gives the player for a given group label
+
+        :param group_number: label/group number to identify
+        :return: corresponding player
+        """
         if group_number % 2 == 0:
             return 2
         else:
@@ -386,7 +412,11 @@ class Game:
     """
 
     def to_move(self, s):
-        """Returns the player to move next given the state s."""
+        """
+        Returns the player to move next given the state s.
+
+        :returns: next player to play
+        """
         return s.player
 
     def terminal_test(self, s):
@@ -401,6 +431,9 @@ class Game:
         If any of the conditions above is violated the state is terminal.
 
         The winner is also updated in the state.
+
+        :param: s - state
+        :return: terminal_test - boolean for terminal state
         """
         terminal_state = False
         # s.draw = 0 mean that the termina_test has been called (previously s.draw = -1)
@@ -426,14 +459,20 @@ class Game:
         return terminal_state
 
     def utility(self, s, player):
-        """Returns the payoff of state s if it is terminal (1 if p wins, -1
+        """
+        Returns the payoff of state s if it is terminal (1 if p wins, -1
         if p loses, 0 in case of a draw), otherwise, its evaluation with respect
         to player p.
         To calculate the evaluation it uses the alpha beta cut
         off search, described further below
 
-        s.player - player that is going to play this round
-        player - being evaluated
+        Note the following:
+            s.player - is the player that is going to play this round
+            player - is the player being evaluated
+
+        :param: s - state
+        :param: player - player for which utility is being calculated
+        :returns: utility score , belong to the interval [-1,1]
         """
 
         if s.draw == -1:  # terminal test not yet run
@@ -472,7 +511,6 @@ class Game:
 
         #return (lambda * (own_min/(own_min+other_min)) + (1-lambda)* ((own_min-other_min)/(own_min+other_min)))
         return ((own_min-other_min)/(own_min+other_min))
-        #return ((own_liberties-other_liberties)/(own_liberties+other_liberties))
 
     def actions(self, s):
         """
@@ -481,6 +519,8 @@ class Game:
         Because we use 0 based board indexation in our implementation and the API states that 1 based
         indexation should be used, we have so add one from each coordinate when an action is returned
 
+        :param: s - state
+        :returns: list of actions available for state s
         """
 
         actions = list()
@@ -512,6 +552,15 @@ class Game:
         return actions
 
     def not_suicide(self, s, row, col):
+        """
+        This function verifies the piece played at (row,col)
+        given the state s is not a suicide
+
+        :param s -  state
+        :param row - row in the board
+        :param col - col in the board
+        :return: boolean - it is or it isn't suicide
+        """
 
         group = s.group_board[row][col]
 
@@ -537,6 +586,10 @@ class Game:
         indexation should be used, we have so subtract one from each coordinate when an action is received
 
         Generates next state (allocates new memory).
+
+        :param: s - state
+        :param: a - action tuple
+        :returns next state
         """
         a = (a[0], a[1]-1, a[2]-1)
 
@@ -549,7 +602,11 @@ class Game:
         return successor_s
 
     def load_board(self, file):
-        """Loads a board from an opened file and returns the corresponding state"""
+        """
+        Loads a board from an opened file and returns the corresponding state
+
+        :returns: corresponding state
+        """
 
         # 1. First line should contain:
         #   - size of board
@@ -567,57 +624,3 @@ class Game:
         s = State(player, size, initial_board=board)
 
         return s
-
-
-# SEARCH algorithm (manually imported into the project, see source in description):
-def alphabeta_cutoff_search(state, game, d=4, cutoff_test=None, eval_fn=None):
-    """
-    From: "https://github.com/aimacode/aima-python/blob/master/games.py"
-
-    Search game to determine best action; use alpha-beta pruning.
-    This version cuts off search and uses an evaluation function.
-    """
-    infinity = float('inf')
-
-    player = game.to_move(state)
-
-    # Functions used by alphabeta
-    def max_value(state, alpha, beta, depth):
-        if cutoff_test(state, depth):
-            return eval_fn(state)
-        v = -infinity
-        for a in game.actions(state):
-            v = max(v, min_value(game.result(state, a),
-                                 alpha, beta, depth + 1))
-            if v >= beta:
-                return v
-            alpha = max(alpha, v)
-        return v
-
-    def min_value(state, alpha, beta, depth):
-        if cutoff_test(state, depth):
-            return eval_fn(state)
-        v = infinity
-        for a in game.actions(state):
-            v = min(v, max_value(game.result(state, a),
-                                 alpha, beta, depth + 1))
-            if v <= alpha:
-                return v
-            beta = min(beta, v)
-        return v
-
-    # Body of alphabeta_cutoff_search starts here:
-    # The default test cuts off at depth d or at a terminal state
-    cutoff_test = (cutoff_test or
-                   (lambda state, depth: depth > d or
-                                         game.terminal_test(state)))
-    eval_fn = eval_fn or (lambda state: game.utility(state, player))
-    best_score = -infinity
-    beta = infinity
-    best_action = None
-    for a in game.actions(state):
-        v = min_value(game.result(state, a), best_score, beta, 1)
-        if v > best_score:
-            best_score = v
-            best_action = a
-    return best_action
