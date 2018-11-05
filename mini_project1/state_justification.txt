@@ -1,0 +1,23 @@
+When building our state representation, we did it in a way that optimizes the trade off: storage size <-> computation time. In other words, we store variables that provide faster computations in the future because they can be accessed directly while avoiding storing redundant information. 
+Our state contains the following information:
+
+- player [integer] - defines next player to move
+- size [integer]- defines the size of the board (is more legible than constantly typing len(board))
+- group_board [list]- displays the board with the groups labels.
+- draw [integer]- this variable plays a flag role. Takes the values:
+        -1: if terminal test was not yet evaluated for the state
+        0: if terminal test was evaluated, but no draw exists for the state
+        1: if terminal test was evaluated, and a draw was found for the state
+- counters [dict]- dictionary with group counter for player 1 and player 2
+- groups [dict]- dictionary with group labels as keys and the corresponding Group object associated as the value. A group structure contains the following info:
+	Group [class]:
+	- 'elements' - list of (i,j) elements in the group
+	- 'liberties' - set of (i,j) liberties of the group
+	- 'n_liberties' - number of liberties of the group
+
+Some justifications/comments:
+1. Draw flag: By storing this information, we can avoid recomputing a terminal test that has already been computed in an earlier stage for this same state. Note that this saves a lot of time, otherwise terminal tests could be called redundantly in the utility function.
+2. We just store the group_board (board with group numbers) since all the functions that make use of the regular board (containing simply the player numbers and not the group numbers) can be replaced by the group board, since we know which groups belong to each player.
+3. The fact that odd groups correspond to player 1 and even groups to player 2 comes in handy when we need to know to which player a certain group belongs with a fast computation. (no need to access group object)
+4. A Group could be represented by a dictionary instead of a class. However, such representation would not allow to isolate functions that actuate specifically on groups. For that reason, we decided to define a class.
+

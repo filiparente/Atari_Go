@@ -1,0 +1,13 @@
+As for the evaluation function we start by defining which variables might influence a given play. These are:
+	- number of liberties of the player’s group with less liberties (group that is more likely to be captured by the oppontent) : own_min
+	- number of liberties of the opponent’s group with less liberties (group that is more likely to be captured by us): other_min
+	- total number of own player liberties: own_liberties
+	- total number of opponent’s liberties: other_liberties
+	- groups’ size because larger groups might be preferred to smaller groups
+
+We verified that maximing and minimizing the total number of liberties resulted in a silly strategy, since playing isolated pieces would always maximize the return in terms of own player number of liberties. This is not a desired behaviour in an Atari Game.
+
+By minimising the opponent’s liberties in the group with less liberties we are indirectly aiming to capture the opponent’s group (attack). At the same time, by maximising the liberties in our group with less liberties we are defending from a possible capture (defence). By applying the strategy: (own_min-other_min)/(own_min+other_min) we find just the right balance between attacking and defending, and return a normalized value.
+
+Explain groupsize and why that was not a good approach.
+
